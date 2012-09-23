@@ -13,30 +13,30 @@ using namespace System::Runtime::InteropServices;
 namespace NPCameraSDKDotNet{
 
 	public enum class VideoMode
-    {
-        SegmentMode              = 0,
-        GrayscaleMode            = 1,
-        ObjectMode               = 2,
-        InterleavedGrayscaleMode = 3,
-        PrecisionMode            = 4,
-        BitPackedPrecisionMode   = 5,
-        MJPEGMode                = 6,
-        VideoModeCount              ,
-        UnknownMode              
-    };
+	{
+		SegmentMode              = 0,
+		GrayscaleMode            = 1,
+		ObjectMode               = 2,
+		InterleavedGrayscaleMode = 3,
+		PrecisionMode            = 4,
+		BitPackedPrecisionMode   = 5,
+		MJPEGMode                = 6,
+		VideoModeCount              ,
+		UnknownMode              
+	};
 
 	public enum class StatusLEDs
-    {
-        GreenStatusLED      = 0x20,
-        RedStatusLED        = 0x10,
-        CaseStatusLED       = 0x40,
-        IlluminationLED     = 0x80,
+	{
+		GreenStatusLED      = 0x20,
+		RedStatusLED        = 0x10,
+		CaseStatusLED       = 0x40,
+		IlluminationLED     = 0x80,
 
-        LeftRedStatusLED    = 16,
-        LeftGreenStatusLED  = 32,
-        RightRedStatusLED   = 1,
-        RightGreenStatusLED = 2,
-    };
+		LeftRedStatusLED    = 16,
+		LeftGreenStatusLED  = 32,
+		RightRedStatusLED   = 1,
+		RightGreenStatusLED = 2,
+	};
 
 
 	public ref class MObject{
@@ -64,27 +64,23 @@ namespace NPCameraSDKDotNet{
 		float X(){return cobject->X();}
 		float Y(){return cobject->Y();}
 
-        ////== Creation & processing functions ==--
-        //
-        //void Clear();
-        //void AddSegment    ( Segment* segment );
-        //void AddSegmentList( cObject * objectSource );
+		////== Creation & processing functions ==--
+		//
+		//void Clear();
+		//void AddSegment    ( Segment* segment );
+		//void AddSegmentList( cObject * objectSource );
 
-        //void PurgeReferences();
+		//void PurgeReferences();
 
-        ////== Generate object information from attached segments ==--
-        //void ProcessLineSegments        ();
-        //void ProcessWeightedLineSegments();
-        //void ProcessSubPixelLineSegments();
-        //void CalculateDimensions        ();
+		////== Generate object information from attached segments ==--
+		//void ProcessLineSegments        ();
+		//void ProcessWeightedLineSegments();
+		//void ProcessSubPixelLineSegments();
+		//void CalculateDimensions        ();
 
-        //Segment *     SegmentHead();
-        //Segment *     SegmentTail();
+		//Segment *     SegmentHead();
+		//Segment *     SegmentTail();
 
-		MObject ^ Clone(){
-			cObject * object = new cObject(*this->cobject);
-			return gcnew MObject(object);
-		}
 	protected:
 	private:
 		cObject * cobject;
@@ -102,8 +98,8 @@ namespace NPCameraSDKDotNet{
 
 		int ObjectCount(){return frame->ObjectCount();}          
 		int FrameID(){return frame->FrameID();}             
-        //eVideoMode      FrameType();            //== Frame Type =============================----
-        //int             MJPEGQuality();         //== For MJPEG Frames, MJPEG Quality (1-100) ----
+		//eVideoMode      FrameType();            //== Frame Type =============================----
+		//int             MJPEGQuality();         //== For MJPEG Frames, MJPEG Quality (1-100) ----
 
 		MObject ^ Object(int index){
 			cObject * obj = frame->Object(index);
@@ -113,8 +109,8 @@ namespace NPCameraSDKDotNet{
 				return gcnew MObject(obj);
 			}
 		}
-        //ObjectLink *    GetLink(int index);
-        //Camera *        GetCamera();            //== Reference to originating camera ========----
+		//ObjectLink *    GetLink(int index);
+		//Camera *        GetCamera();            //== Reference to originating camera ========----
 
 		bool IsInvalid(){return frame->IsInvalid();}          
 		bool IsEmpty(){return frame->IsEmpty();}              
@@ -127,25 +123,29 @@ namespace NPCameraSDKDotNet{
 		int RefCount(){return frame->RefCount();}
 		void AddRef(){frame->AddRef();}
 
-        ////== Rasterization Functionality ==========--
+		////== Rasterization Functionality ==========--
 
-        //void            Rasterize(unsigned int Width, unsigned int Height, unsigned int Span,
-        //                          unsigned int BitsPerPixel, void *Buffer);
+		//void            Rasterize(unsigned int Width, unsigned int Height, unsigned int Span,
+		//                          unsigned int BitsPerPixel, void *Buffer);
 
-        //void            Rasterize(Bitmap *BitmapRef);
+		//void            Rasterize(Bitmap *BitmapRef);
 
-        ////== Frame Decompression Functionality (Advanced Feature) ======---
+		////== Frame Decompression Functionality (Advanced Feature) ======---
 
-        //void            PopulateFrom(CompressedFrame *Frame);
+		//void            PopulateFrom(CompressedFrame *Frame);
 
-        ////== Uncommonly Needed Methods =================================---
+		////== Uncommonly Needed Methods =================================---
 
-        //unsigned char*  GetGrayscaleData();
-        //int             GetGrayscaleDataSize();
-		void CopyGrayScaleDataTo(IntPtr buffer) {
+		//unsigned char*  GetGrayscaleData();
+		//int             GetGrayscaleDataSize();
+		void Rasterize(IntPtr buffer) {
 			const int width = frame->GetCamera()->Width();
 			const int height = frame->GetCamera()->Height();
 			frame->Rasterize(width, height, width, 8, buffer.ToPointer());
+		}
+
+		void GetGrayscaleData(IntPtr buffer) {
+			memcpy(buffer.ToPointer(), frame->GetGrayscaleData(), frame->GetGrayscaleDataSize());
 		}
 
 	protected:
@@ -182,7 +182,7 @@ namespace NPCameraSDKDotNet{
 				this->FrameAvailableCallback();
 		}
 
-        void FrameOverflow(){
+		void FrameOverflow(){
 			if (this->FrameOverflowCallback != 0)
 				this->FrameOverflowCallback();
 		}
@@ -199,106 +199,111 @@ namespace NPCameraSDKDotNet{
 	};
 
 	public ref class MCamera{
-        //Camera();
-        //~Camera();
+		//Camera();
+		//~Camera();
 
-        //virtual void PacketTest(int PacketCount) {};
+		//virtual void PacketTest(int PacketCount) {};
 
 
-        ////== Intended Public Command Interface ==============================================----
+		////== Intended Public Command Interface ==============================================----
 
 		void        SetGrayscaleDecimation(int Value){camera->SetGrayscaleDecimation(Value);}
 
 
-        //void        SetLateMJPEGDecompression(bool Enable);
-        //bool        LateMJPEGDecompression();
+		//void        SetLateMJPEGDecompression(bool Enable);
+		//bool        LateMJPEGDecompression();
 
-        //int         Serial();
-        //int         Model();
-        //int         Revision();
-        //int         HardwareInterface();
-        //void        ResetFrameCount();
+		//int         Serial();
+		//int         Model();
+		//int         Revision();
+		//int         HardwareInterface();
+		//void        ResetFrameCount();
 
-        //virtual bool CameraIDValid();
+		//virtual bool CameraIDValid();
 
-        //virtual void SetIRFilter(bool Enabled);    //== Enable/Disable IR Bandpass Filter ===----
-        //virtual bool IRFilter();
-        //virtual bool IsFilterSwitchAvailable()     { return false;     }
+		//virtual void SetIRFilter(bool Enabled);    //== Enable/Disable IR Bandpass Filter ===----
+		//virtual bool IRFilter();
+		//virtual bool IsFilterSwitchAvailable()     { return false;     }
 
 
-        //virtual void SetHighPowerMode(bool Enable) {};
-        //virtual bool HighPowerMode()               { return false;     }
-        //virtual bool IsHighPowerModeAvailable()    { return false;     }
-        //virtual bool IsHighPowerModeSupported()    { return false;     }
-        //int          LowPowerSetting();
+		//virtual void SetHighPowerMode(bool Enable) {};
+		//virtual bool HighPowerMode()               { return false;     }
+		//virtual bool IsHighPowerModeAvailable()    { return false;     }
+		//virtual bool IsHighPowerModeSupported()    { return false;     }
+		//int          LowPowerSetting();
 
-        //void         SetMJPEGQuality(int Value);   //== Set MJPEG Quality Level (0-100) =====----
-        //virtual int  MJPEGQuality();
-        //virtual bool IsMJPEGAvailable()            { return false; }
+		//void         SetMJPEGQuality(int Value);   //== Set MJPEG Quality Level (0-100) =====----
+		//virtual int  MJPEGQuality();
+		//virtual bool IsMJPEGAvailable()            { return false; }
 
-        //int          SwitchState();                //== SmartNav4's switch state ============----
+		//int          SwitchState();                //== SmartNav4's switch state ============----
 
-        //HealthMonitor * Health();                  //== Camera Health Information ===========----
+		//HealthMonitor * Health();                  //== Camera Health Information ===========----
 
-        //virtual void GetDistortionModel(Core::DistortionModel &Model) {}; //== Distortion Model -
+		//virtual void GetDistortionModel(Core::DistortionModel &Model) {}; //== Distortion Model -
 
-        ////== Status LEDs ====================================================================----
-        //
-        
+		////== Status LEDs ====================================================================----
+		//
+		
 
-        ////== Camera Physical Constants ======================================================----
+		////== Camera Physical Constants ======================================================----
 
-        //virtual double FocalLength()         { return 0.0; }
+		//virtual double FocalLength()         { return 0.0; }
 
-        ////== Additional =====================================================================----
+		////== Additional =====================================================================----
 
-        //void        SetTextOverlay  (bool Enable);
-        //void        SetMarkerOverlay(bool Enable);
+		//void        SetTextOverlay  (bool Enable);
+		//void        SetMarkerOverlay(bool Enable);
 
-        //bool        TextOverlay();
-        //bool        MarkerOverlay();
-        //
-        //void        SetName(const char *Name);
+		//bool        TextOverlay();
+		//bool        MarkerOverlay();
+		//
+		//void        SetName(const char *Name);
 
-        //
-        //InputManager::ConnectionTypes ConnectionType();  //== Returns type of input USB, etc. ---
+		//
+		//InputManager::ConnectionTypes ConnectionType();  //== Returns type of input USB, etc. ---
 
-        ////== Less Commonly Used Public Methods ==============================================----
+		////== Less Commonly Used Public Methods ==============================================----
 
-        //virtual void AttachInput(cInputBase * Input);    //== Manually attach a camera input =---
+		//virtual void AttachInput(cInputBase * Input);    //== Manually attach a camera input =---
  
-        //bool IsCommandQueueEmpty();                      //== Know if camera is busy with ====---
-        //                                                 //== communicating with the device ==---
+		//bool IsCommandQueueEmpty();                      //== Know if camera is busy with ====---
+		//                                                 //== communicating with the device ==---
 
-        //void        ReleaseFrame(Frame* frame);          //== Alternative release frame call =---
+		//void        ReleaseFrame(Frame* frame);          //== Alternative release frame call =---
 
-        //const char* DevicePath();                        //== Returns Device Path for USB ====---
+		//const char* DevicePath();                        //== Returns Device Path for USB ====---
 
-        //virtual void SendCommand(cCameraCommand * Command); //== Push a camera command =======---
-        //void AttachModule  (cCameraModule  * Module);    //== Attach additional functionality ---
-        //void RemoveModule  (cCameraModule  * Module);    //== Remove additional functionality ---
-        //void AttachListener(cCameraListener * Listener); //== Attach for camera events =======---
-        //void RemoveListener(cCameraListener * Listener); //== Remove camera listener =========---
-        //void Shutdown();                                 //== Permanently shutdown camera ====---
+		//virtual void SendCommand(cCameraCommand * Command); //== Push a camera command =======---
+		//void AttachModule  (cCameraModule  * Module);    //== Attach additional functionality ---
+		//void RemoveModule  (cCameraModule  * Module);    //== Remove additional functionality ---
+		//void AttachListener(cCameraListener * Listener); //== Attach for camera events =======---
+		//void RemoveListener(cCameraListener * Listener); //== Remove camera listener =========---
+		//void Shutdown();                                 //== Permanently shutdown camera ====---
 
-        //virtual bool IsHardwareKey () { return false; }  //== For separation of cameras & keys --
-        //virtual bool IsHub ()         { return false; }  //== For separation of cameras & Hubs --
-        //virtual bool IsUSB ()         { return true;  }  //== Camera helpers =================---
-        //virtual bool IsEthernet()     { return false; }  //== Camera helpers =================---
-        //virtual bool IsTBar ()        { return false; }  //== Camera helpers =================---
+		//virtual bool IsHardwareKey () { return false; }  //== For separation of cameras & keys --
+		//virtual bool IsHub ()         { return false; }  //== For separation of cameras & Hubs --
+		//virtual bool IsUSB ()         { return true;  }  //== Camera helpers =================---
+		//virtual bool IsEthernet()     { return false; }  //== Camera helpers =================---
+		//virtual bool IsTBar ()        { return false; }  //== Camera helpers =================---
 
 	public:
 
 		MCamera(Camera * camera){
 			this->camera = camera;
-			this->cameraListener = new CameraListener();
+
+			////
+			//setup callback listener
+/*			this->cameraListener = new CameraListener();
 			this->camera->AttachListener(this->cameraListener);
 
 			TakesABangDelegate^ fp = gcnew TakesABangDelegate(this, & MCamera::NewFrame);
 			this->callbackHandle = GCHandle::Alloc(fp);
 			IntPtr ip = Marshal::GetFunctionPointerForDelegate(fp);
 			BANG_MESSAGE cb = static_cast<BANG_MESSAGE>(ip.ToPointer());
-			this->cameraListener->SetFrameAvailableCallback(cb);
+			this->cameraListener->SetFrameAvailableCallback(cb); */
+			//
+			////
 		}
 
 		~MCamera(){
@@ -333,20 +338,20 @@ namespace NPCameraSDKDotNet{
 			}
 		}         
 
-        //const char* Name();                           //== Returns name of camera ===========----
-        //
+		//const char* Name();                           //== Returns name of camera ===========----
+		//
 
 		void SetLED(StatusLEDs LED, bool Enable){
 			eStatusLEDs leds = static_cast<eStatusLEDs>(LED);
 			camera->SetLED(leds, Enable);
 		}
-        //void SetAllLED(eStatusLEDs LED);                //== Turn Camera LEDs On/Off ========----
-        //void SetStatusIntensity(int Intensity);         //== All Status LED to (0-->255) ====----
+		//void SetAllLED(eStatusLEDs LED);                //== Turn Camera LEDs On/Off ========----
+		//void SetStatusIntensity(int Intensity);         //== All Status LED to (0-->255) ====----
 
 
 		void        Start(){camera->Start();}  
 		void        Stop(bool TurnNumericOff){camera->Stop(TurnNumericOff);} 
-        //
+		//
 		bool		IsValid(){return camera != 0;}
 		bool        IsCameraRunning(){return camera->IsCameraRunning();}     
 
@@ -359,11 +364,11 @@ namespace NPCameraSDKDotNet{
 		void        SetShutterDelay(int Value){camera->SetShutterDelay(Value);}  
 
 		void        SetFrameRate(int Value){camera->SetFrameRate(Value);}        
-        //void        SetFrameDecimation(int Value);        //== Set Camera Frame Decimation ==----
+		//void        SetFrameDecimation(int Value);        //== Set Camera Frame Decimation ==----
 
 		int FrameRate(){return camera->FrameRate();}                         
-        //int         FrameDecimation();                    //== Get Camera Frame Decimation ==----
-        //int         GrayscaleDecimation();                //== Get Camera Grayscale Decimation --
+		//int         FrameDecimation();                    //== Get Camera Frame Decimation ==----
+		//int         GrayscaleDecimation();                //== Get Camera Grayscale Decimation --
 
 		int         PrecisionCap(){return camera->PrecisionCap();}           
 		int         ShutterDelay(){return camera->ShutterDelay();}           
@@ -383,7 +388,9 @@ namespace NPCameraSDKDotNet{
 			return mode;
 		}
 
-
+		void         SetMJPEGQuality(int Value){camera->SetMJPEGQuality(Value);}
+		virtual int  MJPEGQuality(){return camera->MJPEGQuality();}
+		
 		float       DataRate(){return camera->DataRate();}                   
 		float       PacketSize(){return camera->PacketSize();}               
 
@@ -396,31 +403,34 @@ namespace NPCameraSDKDotNet{
 
 		void         SetAGC(bool Enable){camera->SetAGC(Enable);}       
 		bool         AGC(){return camera->AGC();}
-        bool IsAGCAvailable()              { return camera->IsAGCAvailable();}
+		bool IsAGCAvailable()              { return camera->IsAGCAvailable();}
 
 		void         SetAEC(bool Enable){camera->SetAEC(Enable);}       
 		bool         AEC(){return camera->AEC();}
-        bool IsAECAvailable(){return camera->IsAECAvailable();}
+		bool IsAECAvailable(){return camera->IsAECAvailable();}
 
-        int    HardwareFrameRate()   { return camera->HardwareFrameRate();   }
+		int    HardwareFrameRate()   { return camera->HardwareFrameRate();   }
 
 		bool IsInitilized  (){return camera->IsInitilized();}
 		bool IsDisconnected(){return camera->IsDisconnected();}
 
-        //eCameraState State ();
+		//eCameraState State ();
 		int UID(){return camera->UID();}
 		int Model(){return camera->Model();}
 		int Serial(){return camera->Serial();}
 
+		virtual void SetIRFilter(bool Enabled){camera->SetIRFilter(Enabled);}
+		virtual bool IRFilter(){return camera->IRFilter();}
+		virtual bool IsFilterSwitchAvailable(){ return camera->IsFilterSwitchAvailable();}
 
 		void SetEnableBlockingMask(bool Enabled){camera->SetEnableBlockingMask(Enabled);}
 		bool IsBlockingMaskEnabled(){return camera->IsBlockingMaskEnabled();}
 		void AddBlockingRectangle   (int X1, int Y1, int X2, int Y2){camera->AddBlockingRectangle(X1,Y1,X2,Y2);}
-        //void         RemoveBlockingRectangle(int X1, int Y1, int X2, int Y2);
+		//void         RemoveBlockingRectangle(int X1, int Y1, int X2, int Y2);
 		void SetBitMaskPixel(int X, int Y, bool Mask){camera->SetBitMaskPixel(X,Y,Mask);}
 		void         ClearBlockingMask      () {camera->ClearBlockingMask();}
-        //void         GetBlockingMask        (unsigned char *Buffer, int BufferSize);
-        //void         SetBlockingMask        (const unsigned char *Buffer, int BufferSize);
+		//void         GetBlockingMask        (unsigned char *Buffer, int BufferSize);
+		//void         SetBlockingMask        (const unsigned char *Buffer, int BufferSize);
 		void UpdateBlockingMask     (){camera->UpdateBlockingMask();}
 		int          BlockingMaskWidth      (){return camera->BlockingMaskWidth();}
 		int          BlockingMaskHeight     (){return camera->BlockingMaskHeight();}
@@ -430,7 +440,7 @@ namespace NPCameraSDKDotNet{
 		int PhysicalPixelWidth(){return camera->PhysicalPixelWidth();}
 		int PhysicalPixelHeight(){return camera->PhysicalPixelHeight();}
 		double ImagerWidth(){ return camera->ImagerWidth(); }
-        double ImagerHeight(){ return camera->ImagerHeight(); }
+		double ImagerHeight(){ return camera->ImagerHeight(); }
 		int Width(){return camera->Width();}
 		int Height(){return camera->Height();}
 
@@ -527,72 +537,72 @@ namespace NPCameraSDKDotNet{
 	};
 
 	public enum class CameraState
-    {
-        Uninitialized = 0,
-        InitializingDevice,
-        InitializingCamera,
-        Initializing,
-        Initialized,
-        Disconnected,
-        Shutdown
-    };
+	{
+		Uninitialized = 0,
+		InitializingDevice,
+		InitializingCamera,
+		Initializing,
+		Initialized,
+		Disconnected,
+		Shutdown
+	};
 
-    public enum class SyncMode
-    {
-        SyncModeDefault = 0,
-        SyncModeCustom,
-        SyncModeShutterGoggles
-    };
+	public enum class SyncMode
+	{
+		SyncModeDefault = 0,
+		SyncModeCustom,
+		SyncModeShutterGoggles
+	};
 
-    public enum class SyncType
-    {
-        SyncTypeOptiSync = 0,
-        SyncTypeWiredSync
-    };
+	public enum class SyncType
+	{
+		SyncTypeOptiSync = 0,
+		SyncTypeWiredSync
+	};
 
-    public enum class SyncCameraSync
-    {
-        SyncAutoUSBSync = 0,
-        SyncForceUSBSync
-    };
+	public enum class SyncCameraSync
+	{
+		SyncAutoUSBSync = 0,
+		SyncForceUSBSync
+	};
 
-    public enum class SyncInputSource
-    {
-        SyncInputSourceWired = 0,                 
-        SyncInputSourceInternal = 0,
-        SyncInputSourceSMPTEInput,
-        SyncInputSourceSyncExternal=2,
-        SyncInputSourceSyncExternalEitherEdge=2,
-        SyncInputSourceSyncExternalRisingEdge,
-        SyncInputSourceSyncExternalFallingEdge,
-        SyncInputSourceSyncExternalHighGated,
-        SyncInputSourceSyncExternalLowGated,
-        SyncInputSourceUSB                        
-    };
+	public enum class SyncInputSource
+	{
+		SyncInputSourceWired = 0,                 
+		SyncInputSourceInternal = 0,
+		SyncInputSourceSMPTEInput,
+		SyncInputSourceSyncExternal=2,
+		SyncInputSourceSyncExternalEitherEdge=2,
+		SyncInputSourceSyncExternalRisingEdge,
+		SyncInputSourceSyncExternalFallingEdge,
+		SyncInputSourceSyncExternalHighGated,
+		SyncInputSourceSyncExternalLowGated,
+		SyncInputSourceUSB                        
+	};
 
-    public enum class SyncOutputPhase
-    {
-        SyncOutputInPhase = 0,
-        SyncOutputDelayedByGlobalOffset
-    };
-    public enum class SyncOutputPulseDuration
-    {
-        SyncOutputPulseDurationExposureTime = 0,
-        SyncOutputPulseDurationPassThrough,
-        SyncOutputPulseDurationRecordingLevel,
-        SyncOutputPulseDurationRecordingPulse
-    };
+	public enum class SyncOutputPhase
+	{
+		SyncOutputInPhase = 0,
+		SyncOutputDelayedByGlobalOffset
+	};
+	public enum class SyncOutputPulseDuration
+	{
+		SyncOutputPulseDurationExposureTime = 0,
+		SyncOutputPulseDurationPassThrough,
+		SyncOutputPulseDurationRecordingLevel,
+		SyncOutputPulseDurationRecordingPulse
+	};
 
-    public enum class SyncOutputPolarity
-    {
-        SyncOutputPolarityNormal = 0,
-        SyncOutputPolarityInverted
-    };
-    public enum class USBSyncInControl
-    {
-        USBSyncInControlGateClosedDisabled=0,
-        USBSyncInControlGateOpenEnabled
-    };
+	public enum class SyncOutputPolarity
+	{
+		SyncOutputPolarityNormal = 0,
+		SyncOutputPolarityInverted
+	};
+	public enum class USBSyncInControl
+	{
+		USBSyncInControlGateClosedDisabled=0,
+		USBSyncInControlGateOpenEnabled
+	};
 
 
 
