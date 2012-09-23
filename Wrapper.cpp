@@ -8,6 +8,7 @@
 #include "cameralibrary.h"
 using namespace CameraLibrary;
 using namespace System;
+using namespace System::Runtime::InteropServices;
 
 namespace NPCameraSDKDotNet{
 
@@ -80,7 +81,10 @@ namespace NPCameraSDKDotNet{
         //Segment *     SegmentHead();
         //Segment *     SegmentTail();
 
-
+		MObject ^ Clone(){
+			cObject * object = new cObject(*this->cobject);
+			return gcnew MObject(object);
+		}
 	protected:
 	private:
 		cObject * cobject;
@@ -139,15 +143,59 @@ namespace NPCameraSDKDotNet{
         //unsigned char*  GetGrayscaleData();
         //int             GetGrayscaleDataSize();
 		void CopyGrayScaleDataTo(IntPtr buffer) {
-			memcpy(buffer.ToPointer(), frame->GetGrayscaleData(), frame->GetGrayscaleDataSize());
+			const int width = frame->GetCamera()->Width();
+			const int height = frame->GetCamera()->Height();
+			frame->Rasterize(width, height, width, 8, buffer.ToPointer());
 		}
-
-
 
 	protected:
 	private:
 		Frame * frame;
 
+	};
+
+	typedef void (__stdcall *BANG_MESSAGE)(void);
+	delegate void TakesABangDelegate();
+
+	class CameraListener : public cCameraListener {
+	public:
+		CameraListener(){
+			this->FrameAvailableCallback = 0;
+			this->FrameOverflowCallback = 0;
+			this->ButtonPressedCallback = 0;
+		}
+
+		void SetFrameAvailableCallback(BANG_MESSAGE function){
+			this->FrameAvailableCallback = function;
+		}
+
+		void SetFrameOverflowCallback(BANG_MESSAGE function){
+			this->FrameOverflowCallback = function;
+		}
+		
+		void SetButtonPressedCallback(BANG_MESSAGE function){
+			this->ButtonPressedCallback = function;
+		}
+
+		void FrameAvailable(){
+			if (this->FrameAvailableCallback != 0)
+				this->FrameAvailableCallback();
+		}
+
+        void FrameOverflow(){
+			if (this->FrameOverflowCallback != 0)
+				this->FrameOverflowCallback();
+		}
+
+		void ButtonPressed(){
+			if (this->ButtonPressedCallback != 0)
+				this->ButtonPressedCallback();
+		}
+
+	protected:
+		BANG_MESSAGE FrameAvailableCallback;
+		BANG_MESSAGE FrameOverflowCallback;
+		BANG_MESSAGE ButtonPressedCallback;
 	};
 
 	public ref class MCamera{
@@ -239,19 +287,30 @@ namespace NPCameraSDKDotNet{
         //virtual bool IsEthernet()     { return false; }  //== Camera helpers =================---
         //virtual bool IsTBar ()        { return false; }  //== Camera helpers =================---
 
-
-
-
-
-
 	public:
 
 		MCamera(Camera * camera){
 			this->camera = camera;
-			
+			this->cameraListener = new CameraListener();
+			this->camera->AttachListener(this->cameraListener);
+
+			TakesABangDelegate^ fp = gcnew TakesABangDelegate(this, & MCamera::NewFrame);
+			this->callbackHandle = GCHandle::Alloc(fp);
+			IntPtr ip = Marshal::GetFunctionPointerForDelegate(fp);
+			BANG_MESSAGE cb = static_cast<BANG_MESSAGE>(ip.ToPointer());
+			this->cameraListener->SetFrameAvailableCallback(cb);
 		}
+
 		~MCamera(){
+			callbackHandle.Free();
+			delete this->cameraListener;
 			delete this->camera;
+		}
+
+		event EventHandler<EventArgs^> ^ FrameAvailable;
+		
+		void NewFrame(){
+			this->FrameAvailable(this, gcnew EventArgs());
 		}
 
 		MFrame ^ GetFrame(){
@@ -262,7 +321,8 @@ namespace NPCameraSDKDotNet{
 			} else {
 				return gcnew MFrame(frame);
 			}
-		}         
+		}
+
 		MFrame ^ GetLatestFrame(){
 			Frame * frame;
 			frame = camera->GetFrame();
@@ -425,6 +485,8 @@ namespace NPCameraSDKDotNet{
 	protected:
 	private:
 		Camera * camera;
+		CameraListener * cameraListener;
+		GCHandle callbackHandle;
 	};
 
 	public ref class MCameraManager{
@@ -440,7 +502,6 @@ namespace NPCameraSDKDotNet{
 		static bool AreCamerasInitialized(){
 			return CameraManager::X().AreCamerasInitialized();
 		}
-
 
 		static void Shutdown(){
 			CameraManager::X().Shutdown();
@@ -462,7 +523,6 @@ namespace NPCameraSDKDotNet{
 				ret[c] = gcnew MCamera(CameraManager::X().GetCamera(list[c].UID()));
 			}
 			return ret;
-
 		}
 	};
 
